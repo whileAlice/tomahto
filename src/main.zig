@@ -2,12 +2,12 @@ const std = @import("std");
 const posix = std.posix;
 const linux = std.os.linux;
 
-const Assets = @import("assets.zig").Assets;
-const Paplay = @import("paplay.zig").Paplay;
-const Phase = @import("phase.zig").Phase;
-const PhaseConfig = @import("phase.zig").PhaseConfig;
-const PollFds = @import("pollfds.zig").PollFds;
-const TimerFd = @import("timerfd.zig").TimerFd;
+const Assets = @import("assets").Assets;
+const Paplay = @import("paplay").Paplay;
+const Phase = @import("phase").Phase;
+const PhaseConfig = @import("phase").PhaseConfig;
+const PollFds = @import("pollfds").PollFds;
+const TimerFd = @import("timerfd").TimerFd;
 
 const clear_screen = "\x1b[2J";
 const clear_line = "\x1b[2K";
