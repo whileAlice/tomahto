@@ -2,6 +2,7 @@ const std = @import("std");
 const posix = std.posix;
 const linux = std.os.linux;
 
+const Assets = @import("assets.zig").Assets;
 const Paplay = @import("paplay.zig").Paplay;
 const Phase = @import("phase.zig").Phase;
 const PhaseConfig = @import("phase.zig").PhaseConfig;
@@ -15,6 +16,25 @@ const show_cursor = "\x1b[?25h";
 const move_cursor = "\x1b[{d};{d}H";
 
 pub fn main(init: std.process.Init) !void {
+    var assets = Assets.init(init) catch |err| switch (err) {
+        error.FileNotFound => {
+            std.log.err(
+                \\Assets not found! Place assets in any of the following dirs:
+                \\        $XDG_DATA_HOME/tomahto
+                \\        ~/.local/share/tomahto
+                \\        $XDG_DATA_DIRS/tomahto
+                \\        /usr/local/share/tomahto
+                \\        /usr/share/tomahto
+                \\        ../share/tomahto
+            ,
+                .{},
+            );
+            std.process.exit(1);
+        },
+        else => return err,
+    };
+    defer assets.deinit(init);
+
     var args_iter = try init.minimal.args.iterateAllocator(init.gpa);
     defer args_iter.deinit();
 
@@ -69,9 +89,9 @@ pub fn main(init: std.process.Init) !void {
 
     var pfds = PollFds.init(posix.STDIN_FILENO, timer_fd.fd);
 
-    var ding = Paplay.init(init.io, "../assets/ding.wav", false);
-    var windup = Paplay.init(init.io, "../assets/windup.wav", false);
-    var ticking = Paplay.init(init.io, "../assets/ticking.wav", true);
+    var ding = Paplay.init(init.io, assets.getAssetPath(.ding), false);
+    var windup = Paplay.init(init.io, assets.getAssetPath(.windup), false);
+    var ticking = Paplay.init(init.io, assets.getAssetPath(.ticking), true);
     defer {
         ding.kill();
         windup.kill();
