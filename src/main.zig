@@ -7,7 +7,9 @@ const Paplay = @import("paplay").Paplay;
 const Phase = @import("phase").Phase;
 const PhaseConfig = @import("phase").PhaseConfig;
 const PollFds = @import("pollfds").PollFds;
+const Sound = @import("sound").Sound;
 const TimerFd = @import("timerfd").TimerFd;
+const Wav = @import("sound/wav.zig").Wav;
 
 const clear_screen = "\x1b[2J";
 const clear_line = "\x1b[2K";
@@ -34,6 +36,19 @@ pub fn main(init: std.process.Init) !void {
         else => return err,
     };
     defer assets.deinit(init);
+
+    const sound = try Sound.init();
+    defer sound.deinit();
+
+    var ding_sound =
+        try Wav.init(
+            init.gpa,
+            init.io,
+            "/home/althea/dev/zig/tomahto/assets/ding.wav",
+        );
+    defer ding_sound.deinit(init.gpa);
+
+    if (true) return;
 
     var args_iter = try init.minimal.args.iterateAllocator(init.gpa);
     defer args_iter.deinit();
@@ -105,9 +120,9 @@ pub fn main(init: std.process.Init) !void {
 
     outer: while (true) {
         if (phase.id == .focus) {
-            pfds.get(.windup).fd = try windup.play_and_get_fd();
+            pfds.get(.windup).fd = try windup.playAndGetFd();
             if (!is_ticking_muted) {
-                pfds.get(.ticking).fd = try ticking.play_and_get_fd();
+                pfds.get(.ticking).fd = try ticking.playAndGetFd();
             }
         }
 
@@ -160,7 +175,7 @@ pub fn main(init: std.process.Init) !void {
                             ticking.process == null)
                         {
                             pfds.get(.ticking).fd =
-                                try ticking.play_and_get_fd();
+                                try ticking.playAndGetFd();
                         }
                     }
                 }
@@ -183,7 +198,7 @@ pub fn main(init: std.process.Init) !void {
                             ticking.process == null)
                         {
                             pfds.get(.ticking).fd =
-                                try ticking.play_and_get_fd();
+                                try ticking.playAndGetFd();
                         }
                     }
                 }
@@ -197,7 +212,7 @@ pub fn main(init: std.process.Init) !void {
 
             if (pfds.hasEvent(.ticking)) {
                 try ticking.wait();
-                pfds.get(.ticking).fd = try ticking.play_and_get_fd();
+                pfds.get(.ticking).fd = try ticking.playAndGetFd();
             }
 
             if (pfds.hasEvent(.windup)) {
@@ -217,7 +232,7 @@ pub fn main(init: std.process.Init) !void {
             ticking.kill();
             pfds.get(.ticking).fd = -1;
 
-            pfds.get(.ding).fd = try ding.play_and_get_fd();
+            pfds.get(.ding).fd = try ding.playAndGetFd();
         }
 
         phase.next(completed);

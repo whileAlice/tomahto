@@ -13,42 +13,42 @@ pub const PhaseConfig = struct {
     completed_before_long_break: u32 = 4,
 };
 
-pub const Phase = struct {
-    id: PhaseId,
-    config: PhaseConfig,
+pub const Phase = @This();
 
-    pub fn init(phase_config: PhaseConfig) Phase {
-        return Phase{
-            .id = .focus,
-            .config = phase_config,
-        };
-    }
+id: PhaseId,
+config: PhaseConfig,
 
-    pub fn totalSeconds(self: Phase) u32 {
-        const c = &self.config;
-        return switch (self.id) {
-            .focus => c.focus_length_min * std.time.s_per_min,
-            .short_break => c.short_break_length_min * std.time.s_per_min,
-            .long_break => c.long_break_length_min * std.time.s_per_min,
-        };
-    }
+pub fn init(phase_config: PhaseConfig) Phase {
+    return Phase{
+        .id = .focus,
+        .config = phase_config,
+    };
+}
 
-    pub fn next(self: *Phase, completed: u32) void {
-        const c = &self.config;
-        self.id = switch (self.id) {
-            .focus => if (completed % c.completed_before_long_break == 0)
-                .long_break
-            else
-                .short_break,
-            .short_break, .long_break => .focus,
-        };
-    }
+pub fn totalSeconds(self: Phase) u32 {
+    const c = &self.config;
+    return switch (self.id) {
+        .focus => c.focus_length_min * std.time.s_per_min,
+        .short_break => c.short_break_length_min * std.time.s_per_min,
+        .long_break => c.long_break_length_min * std.time.s_per_min,
+    };
+}
 
-    pub fn label(self: Phase) []const u8 {
-        return switch (self.id) {
-            .focus => "FOCUS",
-            .short_break => "SHORT BREAK",
-            .long_break => "LONG BREAK",
-        };
-    }
-};
+pub fn next(self: *Phase, completed: u32) void {
+    const c = &self.config;
+    self.id = switch (self.id) {
+        .focus => if (completed % c.completed_before_long_break == 0)
+            .long_break
+        else
+            .short_break,
+        .short_break, .long_break => .focus,
+    };
+}
+
+pub fn label(self: Phase) []const u8 {
+    return switch (self.id) {
+        .focus => "FOCUS",
+        .short_break => "SHORT BREAK",
+        .long_break => "LONG BREAK",
+    };
+}
