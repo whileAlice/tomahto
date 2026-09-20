@@ -3,12 +3,12 @@ const std = @import("std");
 const asound_c = @import("asound_c");
 const Wav = @import("wav").Wav;
 
-pub const Sound = @This();
+pub const Pcm = @This();
 
 pcm: *asound_c.snd_pcm_t,
 hw_params: *asound_c.snd_pcm_hw_params_t,
 
-pub fn init() !Sound {
+pub fn init() !Pcm {
     var pcm: ?*asound_c.snd_pcm_t = null;
     var hw_params: ?*asound_c.snd_pcm_hw_params_t = null;
 
@@ -57,13 +57,13 @@ pub fn init() !Sound {
         return error.AlsaHwParamsSetAccessFailed;
     }
 
-    return Sound{
+    return Pcm{
         .pcm = pcm.?,
         .hw_params = hw_params.?,
     };
 }
 
-pub fn deinit(self: *Sound) void {
+pub fn deinit(self: *Pcm) void {
     asound_c.snd_pcm_hw_params_free(self.hw_params);
 
     const res = asound_c.snd_pcm_close(self.pcm);
@@ -74,7 +74,7 @@ pub fn deinit(self: *Sound) void {
     }
 }
 
-pub fn play(self: *Sound, wav: Wav) !void {
+pub fn play(self: *Pcm, wav: Wav) !void {
     const format = switch (wav.header.bits_per_sample) {
         16 => asound_c.SND_PCM_FORMAT_S16_LE,
         24 => asound_c.SND_PCM_FORMAT_S24_3LE,

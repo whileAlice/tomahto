@@ -5,11 +5,28 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const asound_c = b.addTranslateC(.{
-        .root_source_file = b.path("src/sound/asound.h"),
+        .root_source_file = b.path("src/audio/asound.h"),
         .target = target,
         .optimize = optimize,
     });
     const asound_c_module = asound_c.createModule();
+
+    const wav_module = b.createModule(.{
+        .root_source_file = b.path("src/audio/wav.zig"),
+    });
+    const pcm_module = b.createModule(.{
+        .root_source_file = b.path("src/audio/pcm.zig"),
+        .imports = &.{
+            .{ .name = "asound_c", .module = asound_c_module },
+            .{ .name = "wav", .module = wav_module },
+        },
+    });
+    const player_module = b.createModule(.{
+        .root_source_file = b.path("src/audio/player.zig"),
+        .imports = &.{
+            .{ .name = "pcm", .module = pcm_module },
+        },
+    });
 
     const assets_module = b.createModule(.{
         .root_source_file = b.path("src/assets.zig"),
@@ -20,21 +37,11 @@ pub fn build(b: *std.Build) void {
     const phase_module = b.createModule(.{
         .root_source_file = b.path("src/phase.zig"),
     });
-    const pollfds_module = b.createModule(.{
-        .root_source_file = b.path("src/pollfds.zig"),
+    const poll_fds_module = b.createModule(.{
+        .root_source_file = b.path("src/poll_fds.zig"),
     });
-    const wav_module = b.createModule(.{
-        .root_source_file = b.path("src/sound/wav.zig"),
-    });
-    const sound_module = b.createModule(.{
-        .root_source_file = b.path("src/sound/sound.zig"),
-        .imports = &.{
-            .{ .name = "asound_c", .module = asound_c_module },
-            .{ .name = "wav", .module = wav_module },
-        },
-    });
-    const timerfd_module = b.createModule(.{
-        .root_source_file = b.path("src/timerfd.zig"),
+    const timer_fd_module = b.createModule(.{
+        .root_source_file = b.path("src/timer_fd.zig"),
     });
 
     const root_module = b.createModule(.{
@@ -45,10 +52,9 @@ pub fn build(b: *std.Build) void {
             .{ .name = "assets", .module = assets_module },
             .{ .name = "paplay", .module = paplay_module },
             .{ .name = "phase", .module = phase_module },
-            .{ .name = "pollfds", .module = pollfds_module },
-            .{ .name = "sound", .module = sound_module },
-            .{ .name = "timerfd", .module = timerfd_module },
-            .{ .name = "wav", .module = wav_module },
+            .{ .name = "player", .module = player_module },
+            .{ .name = "poll_fds", .module = poll_fds_module },
+            .{ .name = "timer_fd", .module = timer_fd_module },
         },
     });
 
