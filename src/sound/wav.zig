@@ -22,9 +22,8 @@ comptime {
 
 pub const Wav = @This();
 
-samples: []i16,
-sample_rate: u32,
-channel_count: u16,
+header: WavHeader,
+samples: []u8,
 
 pub fn init(
     allocator: std.mem.Allocator,
@@ -38,14 +37,11 @@ pub fn init(
     const reader = &file_reader.interface;
 
     const header = try reader.takeStruct(WavHeader, .little);
-    const sample_count = header.subchunk_2_size / @sizeOf(i16);
-    const samples =
-        try reader.readSliceEndianAlloc(allocator, i16, sample_count, .little);
+    const samples = try reader.readAlloc(allocator, header.subchunk_2_size);
 
     return .{
+        .header = header,
         .samples = samples,
-        .sample_rate = header.sample_rate,
-        .channel_count = header.channel_count,
     };
 }
 

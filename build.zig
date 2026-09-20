@@ -23,13 +23,14 @@ pub fn build(b: *std.Build) void {
     const pollfds_module = b.createModule(.{
         .root_source_file = b.path("src/pollfds.zig"),
     });
+    const wav_module = b.createModule(.{
+        .root_source_file = b.path("src/sound/wav.zig"),
+    });
     const sound_module = b.createModule(.{
         .root_source_file = b.path("src/sound/sound.zig"),
         .imports = &.{
-            .{
-                .name = "asound_c",
-                .module = asound_c_module,
-            },
+            .{ .name = "asound_c", .module = asound_c_module },
+            .{ .name = "wav", .module = wav_module },
         },
     });
     const timerfd_module = b.createModule(.{
@@ -47,6 +48,7 @@ pub fn build(b: *std.Build) void {
             .{ .name = "pollfds", .module = pollfds_module },
             .{ .name = "sound", .module = sound_module },
             .{ .name = "timerfd", .module = timerfd_module },
+            .{ .name = "wav", .module = wav_module },
         },
     });
 

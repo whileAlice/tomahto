@@ -9,7 +9,7 @@ const PhaseConfig = @import("phase").PhaseConfig;
 const PollFds = @import("pollfds").PollFds;
 const Sound = @import("sound").Sound;
 const TimerFd = @import("timerfd").TimerFd;
-const Wav = @import("sound/wav.zig").Wav;
+const Wav = @import("wav").Wav;
 
 const clear_screen = "\x1b[2J";
 const clear_line = "\x1b[2K";
@@ -37,7 +37,7 @@ pub fn main(init: std.process.Init) !void {
     };
     defer assets.deinit(init);
 
-    const sound = try Sound.init();
+    var sound = try Sound.init();
     defer sound.deinit();
 
     var ding_sound =
@@ -47,6 +47,16 @@ pub fn main(init: std.process.Init) !void {
             "/home/althea/dev/zig/tomahto/assets/ding.wav",
         );
     defer ding_sound.deinit(init.gpa);
+    var windup_sound =
+        try Wav.init(
+            init.gpa,
+            init.io,
+            "/home/althea/dev/zig/tomahto/assets/windup.wav",
+        );
+    defer windup_sound.deinit(init.gpa);
+
+    try sound.play(ding_sound);
+    try sound.play(windup_sound);
 
     if (true) return;
 
